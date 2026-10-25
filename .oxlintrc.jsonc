@@ -254,9 +254,19 @@
       "rules": { "eslint/no-underscore-dangle": ["error", { "allow": ["_count"] }] },
     },
     {
-      "files": ["src/run.ts"],
-      // The command prints its report and progress, which is its output.
+      "files": ["src/run.ts", "src/dev/run.ts"],
+      // The commands print their report and progress, which is their output.
       "rules": { "eslint/no-console": "off" },
+    },
+    {
+      "files": ["src/dev/bundle.ts"],
+      // esbuild matches plugin filters with Go's regular expressions, which reject JavaScript's
+      // u and v flags.
+      "rules": {
+        "eslint/require-unicode-regexp": "off",
+        "regexp/require-unicode-regexp": "off",
+        "regexp/require-unicode-sets-regexp": "off",
+      },
     },
     {
       "files": ["**/*.test.ts"],

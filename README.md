@@ -23,6 +23,26 @@ Each use case is written the way each library's documentation recommends, on the
 
 Libraries: node-postgres (the baseline), ottersql, Drizzle, Kysely and Prisma 7, all on node-postgres with a pool of 10 connections. postgres.js and Bun.sql change the driver too, so they will be compared separately.
 
+## What is measured while developing and shipping
+
+`pnpm bench:dev` measures what each library costs before a query runs:
+
+| Part        | What it measures                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `typecheck` | For schemas of 10, 100 and 500 tables with three queries per table (one row by id, a filtered list, an insert returning the id), each written as the library documents: `tsc` time, peak memory of `tsc` and the processes it waits for (ottersql's content mapper), type instantiations and types (`--extendedDiagnostics`), and the time and size of generated code (`prisma generate`; ottersql, Drizzle and Kysely generate nothing). Every run writes a fresh project, so no cache is reused. |
+| `footprint` | Packages and bytes a production install of a minimal application brings in.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `bundle`    | Size of the runtime benchmark's application bundled and minified with esbuild, as written and gzipped; node-postgres alone is the baseline.                                                                                                                                                                                                                                                                                                                                                        |
+| `start`     | Time from starting a Node process to the result of its first query.                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `memory`    | Resident memory and heap in use after 10,000 queries and a garbage collection.                                                                                                                                                                                                                                                                                                                                                                                                                     |
+
+Known limits:
+
+- ottersql 0.1.1 has no esbuild plugin, so the bundle builds its `.sql` modules the way `@ottersql/sql/register` does.
+- ottersql 0.1.1 cannot write declaration files from the command line yet, so only the content mapper path is measured.
+- The type-checked projects link this repository's `node_modules` instead of installing, so they resolve exactly the pinned versions.
+- Peak memory comes from `/usr/bin/time` and is left out where it is not available.
+- How quickly an editor shows types after a change is not measured yet.
+
 ## Rules
 
 These answer the fairness problems raised against earlier ORM benchmarks.
@@ -52,6 +72,8 @@ pnpm test                          # every library returns the same results
 pnpm bench                         # about 20 minutes; writes results/raw/<time>.json
 pnpm bench --scale tiny --runs 1 --seconds 1   # a quick try
 pnpm bench --help
+pnpm bench:dev                     # type checking, installing, bundling, starting, memory
+pnpm bench:dev --tables 10 --runs 1   # a quick try
 ```
 
 ## License

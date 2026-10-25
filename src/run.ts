@@ -1,13 +1,12 @@
 // Runs every use case on every library and writes the results to results/raw/<time>.json, with
 // a table on stdout. `pnpm bench --help` lists the options.
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { arch, cpus, platform, release, totalmem } from "node:os";
 import { parseArgs } from "node:util";
 
 import { caseDefinitions } from "./cases.ts";
 import type { CaseDefinition, CaseName, Library } from "./cases.ts";
 import { POSTGRES_IMAGE, readStatements, resetStatements, startServer } from "./database.ts";
 import type { Server } from "./database.ts";
+import { machine, versions, writeResults } from "./environment.ts";
 import { libraries } from "./libraries.ts";
 import { measureCase } from "./measure.ts";
 import { report } from "./report.ts";
@@ -17,9 +16,7 @@ import type { Scale } from "./seed.ts";
 
 const POOL_SIZE = 10;
 const MILLISECONDS_PER_SECOND = 1000;
-const BYTES_PER_GIGABYTE = 1_073_741_824;
 const MEDIAN_DIGITS = 3;
-const JSON_INDENT = 2;
 const MEASURED_PACKAGES = ["@ottersql/sql", "pg", "drizzle-orm", "kysely", "@prisma/client"];
 
 const usage = `Options:
@@ -173,19 +170,7 @@ async function measureOnNewServer(chosenPlan: Plan): Promise<Recorded> {
   }
 }
 
-async function versionOf(name: string): Promise<string> {
-  const manifest: unknown = JSON.parse(
-    await readFile(new URL(`../node_modules/${name}/package.json`, import.meta.url), "utf8"),
-  );
-  return typeof manifest === "object" && manifest !== null && "version" in manifest
-    ? String(manifest.version)
-    : "unknown";
-}
-
 async function resultsOf(chosenPlan: Plan, recorded: Recorded): Promise<Results> {
-  const versions = await Promise.all(
-    MEASURED_PACKAGES.map(async (name) => [name, await versionOf(name)] as const),
-  );
   const cases = Object.fromEntries(
     chosenPlan.definitions.map((definition) => [
       definition.name,
@@ -199,22 +184,14 @@ async function resultsOf(chosenPlan: Plan, recorded: Recorded): Promise<Results>
   );
   return {
     date: new Date().toISOString(),
-    machine: {
-      cpu: cpus()[0]?.model ?? "unknown",
-      cores: cpus().length,
-      memoryGigabytes: Math.round(totalmem() / BYTES_PER_GIGABYTE),
-      os: `${platform()} ${release()} ${arch()}`,
-      node: process.version,
-      postgres: POSTGRES_IMAGE,
-      note: "The libraries and Postgres (in Docker) share this one machine.",
-    },
+    machine: machine(),
     settings: {
       scale: chosenPlan.scaleName,
       runs: chosenPlan.runs,
       seconds: chosenPlan.seconds,
       poolSize: POOL_SIZE,
     },
-    versions: Object.fromEntries(versions),
+    versions: await versions(MEASURED_PACKAGES),
     cases,
   };
 }
@@ -224,10 +201,7 @@ if (chosenPlan === undefined) {
   console.log(usage);
 } else {
   const results = await resultsOf(chosenPlan, await measureOnNewServer(chosenPlan));
-  const directory = new URL("../results/raw/", import.meta.url);
-  await mkdir(directory, { recursive: true });
-  const file = new URL(`${results.date.replaceAll(":", "-")}.json`, directory);
-  await writeFile(file, `${JSON.stringify(results, null, JSON_INDENT)}\n`);
+  const file = await writeResults("", results);
   console.log(report(results));
-  console.error(`Wrote ${file.pathname}`);
+  console.error(`Wrote ${file}`);
 }

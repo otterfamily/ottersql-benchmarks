@@ -10,8 +10,9 @@
     "format:check": "oxfmt --check",
     "lint": "oxlint",
     "typecheck": "tsc -p . --runExternalCode",
-    "test": "node --import @ottersql/sql/register --test src/*.test.ts",
+    "test": "node --import @ottersql/sql/register --test src/*.test.ts src/dev/*.test.ts",
     "bench": "node --import @ottersql/sql/register src/run.ts",
+    "bench:dev": "node --import @ottersql/sql/register src/dev/run.ts",
     "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "@testcontainers/postgresql": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
+    "esbuild": "catalog:",
     "eslint-plugin-regexp": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
