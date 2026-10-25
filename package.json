@@ -1,0 +1,50 @@
+{
+  "name": "ottersql-benchmarks",
+  "private": true,
+  "description": "Benchmarks that compare ottersql with other TypeScript database libraries on the same Postgres",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "postinstall": "prisma generate",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint",
+    "typecheck": "tsc -p . --runExternalCode",
+    "test": "node --import @ottersql/sql/register --test src/*.test.ts",
+    "bench": "node --import @ottersql/sql/register src/run.ts",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
+  },
+  "dependencies": {
+    "@ottersql/sql": "catalog:",
+    "@prisma/adapter-pg": "catalog:",
+    "@prisma/client": "catalog:",
+    "drizzle-orm": "catalog:",
+    "kysely": "catalog:",
+    "pg": "catalog:"
+  },
+  "devDependencies": {
+    "@ottersql/content-mapper": "catalog:",
+    "@testcontainers/postgresql": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "eslint-plugin-regexp": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
+    "prisma": "catalog:",
+    "typescript": "catalog:"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.15.0",
+      "onFail": "download"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "26.12.1",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.15.0"
+}

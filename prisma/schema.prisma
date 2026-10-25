@@ -1,0 +1,81 @@
+// Mirrors db/schema.sql, which creates the tables; Prisma only reads and writes them.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/prisma/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        BigInt    @id @default(autoincrement())
+  email     String    @unique
+  name      String
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  posts     Post[]
+  comments  Comment[]
+  events    Event[]
+
+  @@map("users")
+}
+
+model Post {
+  id          BigInt    @id @default(autoincrement())
+  authorId    BigInt    @map("author_id")
+  title       String
+  body        String
+  publishedAt DateTime? @map("published_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  author      User      @relation(fields: [authorId], references: [id])
+  comments    Comment[]
+  postTags    PostTag[]
+
+  @@index([authorId])
+  @@map("posts")
+}
+
+model Comment {
+  id        BigInt   @id @default(autoincrement())
+  postId    BigInt   @map("post_id")
+  authorId  BigInt   @map("author_id")
+  body      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  post      Post     @relation(fields: [postId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@map("comments")
+}
+
+model Tag {
+  id       BigInt    @id @default(autoincrement())
+  name     String    @unique
+  postTags PostTag[]
+
+  @@map("tags")
+}
+
+model PostTag {
+  postId BigInt @map("post_id")
+  tagId  BigInt @map("tag_id")
+  post   Post   @relation(fields: [postId], references: [id])
+  tag    Tag    @relation(fields: [tagId], references: [id])
+
+  @@id([postId, tagId])
+  @@map("post_tags")
+}
+
+model Event {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt?  @map("user_id")
+  kind       String
+  amount     Decimal? @db.Decimal(12, 2)
+  payload    Json
+  labels     String[]
+  happenedAt DateTime @map("happened_at") @db.Timestamptz
+  succeeded  Boolean
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@map("events")
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+mapper.log
+.DS_Store
+CLAUDE.local.md
+src/prisma/generated/
+results/raw/

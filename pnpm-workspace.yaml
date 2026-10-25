@@ -1,0 +1,35 @@
+catalogMode: strict
+
+trustPolicy: no-downgrade
+
+# Optional native speed-ups and version checks pulled in by testcontainers; nothing needs them.
+allowBuilds:
+  cpu-features: false
+  protobufjs: false
+  ssh2: false
+  # Prisma 7 generates its client without engines, so their download scripts are not needed.
+  "@prisma/engines": false
+  prisma: false
+
+catalog:
+  "@ottersql/content-mapper": 0.1.1
+  "@ottersql/sql": 0.1.1
+  "@prisma/adapter-pg": 7.9.1
+  "@prisma/client": 7.9.1
+  "@testcontainers/postgresql": ^12.2.1
+  "@types/node": ^26.6.5
+  "@types/pg": ^8.23.1
+  drizzle-orm: 0.45.4
+  eslint-plugin-regexp: ^3.3.1
+  kysely: 0.29.7
+  oxfmt: ^0.74.0
+  oxlint: ^1.89.0
+  oxlint-tsgolint: ^7.0.2005
+  pg: ^8.23.1
+  prisma: 7.9.1
+  typescript: 7.1.0-beta
+
+minimumReleaseAgeExclude:
+  - "@ottersql/sql@0.1.1"
+  - "@ottersql/catalog@0.1.1"
+  - "@ottersql/content-mapper@0.1.1"
