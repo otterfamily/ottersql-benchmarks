@@ -45,7 +45,7 @@ const KILOBYTE = 1024;
 
 /** The line in which `/usr/bin/time` reports the peak memory of a command, on each system. */
 const peakFormats: Readonly<Record<string, { flag: string; pattern: RegExp; scale: number }>> = {
-  darwin: { flag: "-l", pattern: /^(?<value>\d+) maximum resident set size$/v, scale: 1 },
+  darwin: { flag: "-l", pattern: /^(?<value>\d+) +maximum resident set size$/v, scale: 1 },
   linux: {
     flag: "-v",
     pattern: /^Maximum resident set size \(kbytes\): (?<value>\d+)$/v,
